@@ -83,7 +83,25 @@ PEVS_DATA = {
 # Cria o DataFrame para o mapa e a tabela
 df_pevs = pd.DataFrame(PEVS_DATA)
 
-# --- 3. FUNÇÃO PRINCIPAL DA INTERFACE ---
+# --- 3. FUNÇÃO DE ANÁLISE (SIMULADA) ---
+
+def analyze_routine(routine_text):
+    """Simula a análise da rotina digital com base em palavras-chave."""
+    routine_text_lower = routine_text.lower()
+
+    if not routine_text:
+        return "Por favor, descreva sua rotina para que possamos analisá-la."
+
+    # Regras de avaliação simplificadas
+    if '8 horas' in routine_text_lower or '10 horas' in routine_text_lower or 'uso excessivo' in routine_text_lower or 'insônia' in routine_text_lower or 'antes de dormir' in routine_text_lower:
+        return "⚠️ **Atenção:** Sua rotina sugere um tempo de tela elevado ou hábitos noturnos prejudiciais. Considere o ciclo circadiano e a regra 20-20-20 para a saúde ocular. Lembre-se, o uso excessivo leva ao descarte precoce de aparelhos."
+    elif 'exercício' in routine_text_lower or 'pausas' in routine_text_lower or 'limite de tempo' in routine_text_lower or 'fora do quarto' in routine_text_lower or 'descanso' in routine_text_lower:
+        return "✅ **Parabéns!** Seus hábitos parecem saudáveis e equilibrados. Manter pausas ativas e limitar o uso noturno contribui para sua saúde e para a durabilidade dos seus eletrônicos."
+    else:
+        return "ℹ️ **Interessante:** Sua rotina está em análise. Lembre-se de integrar pausas e limitar o uso de telas antes de dormir para maximizar seu bem-estar digital."
+
+
+# --- 4. FUNÇÃO PRINCIPAL DA INTERFACE ---
 
 def app_principal():
     st.title("♻️ E-Lixo Barretos: Mapa Comunitário")
@@ -95,7 +113,6 @@ def app_principal():
     st.sidebar.markdown(f"**Cidade:** Barretos, SP")
 
     # Criação das Abas
-    # O TÍTULO DA ABA 2 FOI MANTIDO CLARO E SEM JARGÕES ACADÊMICOS
     tab1, tab2 = st.tabs(["Localizar Ponto de Descarte (PEV)", "Sua Saúde Digital"])
 
     # --- ABA 1: Logística (Mapeamento) ---
@@ -179,8 +196,8 @@ def app_principal():
         O descarte de e-lixo é uma consequência do fim da vida útil dos aparelhos.
         """)
         
-        st.subheader("Seu Desempenho (Simulado)")
-        # Métricas de uso amigáveis (REINTRODUZIDAS)
+        st.subheader("Seu Desempenho")
+        # Métricas de uso amigáveis 
         col_m1, col_m2, col_m3 = st.columns(3)
         
         col_m1.metric(
@@ -203,6 +220,39 @@ def app_principal():
             help="Média de sono semanal. Dormir bem está diretamente ligado ao uso reduzido de eletrônicos antes de deitar."
         )
         
+        # --- NOVO BLOCO: ANÁLISE DE ROTINA ---
+        st.markdown("---")
+        st.subheader("📝 Avalie sua Rotina Digital")
+        st.write("Descreva brevemente como você utiliza seus dispositivos (horas de tela, uso antes de dormir, pausas, etc.) e receba uma avaliação instantânea dos seus hábitos.")
+
+        # O formulário ajuda a manter a interface limpa após o clique do botão
+        with st.form("routine_form"):
+            routine_input = st.text_area(
+                "Minha rotina digital:", 
+                key="routine_input", 
+                height=150,
+                placeholder="Ex: Eu uso meu celular por cerca de 8 horas por dia. Olho o feed antes de dormir e acordo e já pego o aparelho."
+            )
+            
+            # O botão de análise
+            submitted = st.form_submit_button("Analisar Hábito Digital", type="secondary")
+
+        if submitted:
+            feedback = analyze_routine(routine_input)
+            st.session_state['routine_feedback'] = feedback
+
+        # Exibe o feedback se estiver disponível
+        if 'routine_feedback' in st.session_state and st.session_state['routine_feedback']:
+            st.markdown(f"#### Resultado da Análise:")
+            # Usa os componentes de alerta do Streamlit para um feedback visual
+            if 'Parabéns' in st.session_state['routine_feedback']:
+                st.success(st.session_state['routine_feedback'])
+            elif 'Atenção' in st.session_state['routine_feedback']:
+                st.error(st.session_state['routine_feedback'])
+            else:
+                st.info(st.session_state['routine_feedback'])
+        # --- FIM DO NOVO BLOCO ---
+
         st.markdown("---")
         st.subheader("💡 Dicas Rápidas: Uso Consciente e Descarte")
         st.write("""

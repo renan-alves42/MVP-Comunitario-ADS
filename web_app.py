@@ -4,24 +4,22 @@ import numpy as np
 
 # --- 1. CONFIGURAÇÃO DE ESTILO E PÁGINA ---
 
-# CSS para tentar adicionar uma imagem de fundo e melhorar o estilo
-# ATENÇÃO: Carregar fundos de arquivos locais (fundo_bonito.jpg) é instável no Streamlit Cloud.
-# O código abaixo prioriza o estilo geral.
+# CSS para melhorar o estilo da interface no navegador
 st.markdown("""
     <style>
-    /* Estilo para a barra lateral */
+    /* Estilo para a barra lateral, usando um verde mais corporativo */
     .css-1d391kg {{
-        background-color: #2e7a3d !important; /* Um tom de verde mais escuro */
+        background-color: #008000 !important; /* Verde Limão/Floresta */
         color: white;
     }}
     /* Estilo para o título principal */
     .stApp > header {{
         background-color: transparent;
     }}
-    /* Centralizar o mapa para melhor visualização */
+    /* Centralizar o mapa e aplicar bordas arredondadas */
     .stMap {{
         border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombra mais destacada */
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -32,55 +30,69 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. DADOS SIMULADOS DE PEVs EM BARRETOS (COORDENADAS APROXIMADAS) ---
+# --- 2. DADOS DOS PEVs EM BARRETOS (COORDENADAS ESTIMADAS COM BASE NOS ENDEREÇOS REAIS) ---
 
 # Coordenadas do centro aproximado de Barretos (para centralizar o mapa)
-BARRETOS_CENTER_LAT = -20.5540
-BARRETOS_CENTER_LON = -48.5700
+BARRETOS_CENTER_LAT = -20.5590
+BARRETOS_CENTER_LON = -48.5670
 
 PEVS_DATA = {
     'nome': [
-        "PEV Prefeitura (Centro)",
-        "PEV North Shopping",
-        "PEV Região California",
-        "PEV Residencial City Barretos",
-        "PEV UPA"
+        "PEV Leda Amendola",
+        "PEV Califórnia",
+        "PEV Christiano Carvalho",
+        "PEV Exposição",
+        "PEV Nadir Kenan",
+        "PEV Santa Cecília"
     ],
+    'endereco': [
+        "LSA 10 - João Botacini s/nº",
+        "Rua Cristiano de Carvalho nº 50",
+        "Avenida João Ribeiro do Nascimento",
+        "Rua Fábio Junqueira Franco nº 301",
+        "Rua Rage Caiel nº 400",
+        "Avenida Antônio Machado das Dores, s/nº"
+    ],
+    # Coordenadas estimadas para espalhar os pontos pela cidade
     'lat': [
-        -20.5580,  # Centro (Próximo à Prefeitura)
-        -20.5400,  # Shopping (Mais ao norte)
-        -20.5750,  # Mais ao sul
-        -20.5650,  # Oeste
-        -20.5500   # Leste
+        -20.5500,  # Leda Amendola
+        -20.5750,  # Califórnia
+        -20.5400,  # Christiano Carvalho
+        -20.5600,  # Exposição
+        -20.5550,  # Nadir Kenan
+        -20.5650   # Santa Cecília
     ],
     'lon': [
-        -48.5740,
-        -48.5780,
-        -48.5700,
+        -48.5800,
+        -48.5650,
+        -48.5600,
+        -48.5750,
         -48.5850,
-        -48.5600
+        -48.5500
     ],
     'status': [
         "✅ Livre",
         "⚠️ Coleta Urgente",
         "✅ Livre",
         "⚠️ Coleta Urgente",
-        "✅ Livre"
+        "✅ Livre",
+        "⚠️ Coleta Urgente"
     ]
 }
 
-# Cria o DataFrame para o mapa
+# Cria o DataFrame para o mapa e a tabela
 df_pevs = pd.DataFrame(PEVS_DATA)
 
 # --- 3. FUNÇÃO PRINCIPAL DA INTERFACE ---
 
 def app_principal():
     st.title("♻️ E-Lixo Barretos: Mapa Comunitário")
-    st.markdown("Uma plataforma para descarte consciente e monitoramento de eletrônicos.")
+    st.markdown("Uma plataforma para descarte consciente e monitoramento de eletrônicos na sua região.")
     st.markdown("---")
     
-    # Simulação da Geolocalização Ativa
-    st.sidebar.info("📡 Geolocalização Ativa: Verifique a distância em tempo real.", icon="🧭")
+    # Simulação da Geolocalização Ativa (Barra Lateral)
+    st.sidebar.info("📡 Geolocalização Ativa: Encontre o PEV mais próximo de você.", icon="🧭")
+    st.sidebar.markdown(f"**Centro do Mapa:** Latitude {BARRETOS_CENTER_LAT}, Longitude {BARRETOS_CENTER_LON}")
 
     # Criação das Abas
     tab1, tab2 = st.tabs(["Localizar Ponto de Descarte (PEV)", "Monitor de Bem-Estar Digital"])
@@ -90,34 +102,46 @@ def app_principal():
         st.header("📍 Pontos de Entrega Voluntária (PEVs) em Barretos")
         
         # Cria e exibe o mapa
+        # O zoom é definido para focar em Barretos e mostrar todos os pontos
         st.map(df_pevs, latitude='lat', longitude='lon', zoom=12)
         
-        # Tabela com detalhes dos PEVs (para visualização de status)
+        # Tabela com detalhes dos PEVs (incluindo o endereço)
         st.subheader("Status Detalhado dos Pontos de Coleta")
         
         # Estiliza a tabela com cores baseadas no status
         def color_status(val):
             if 'Urgente' in val:
-                color = 'background-color: #f8d7da; color: #721c24;' # Vermelho claro
+                # Cor do Streamlit: Error/Vermelho
+                color = 'background-color: rgba(253, 240, 240, 0.7); color: #842029; font-weight: bold;'
             elif 'Livre' in val:
-                color = 'background-color: #d4edda; color: #155724;' # Verde claro
+                # Cor do Streamlit: Success/Verde
+                color = 'background-color: rgba(230, 255, 230, 0.7); color: #0a3622; font-weight: bold;'
             else:
                 color = ''
             return color
 
+        # Seleciona as colunas a serem exibidas na tabela
+        df_display = df_pevs[['nome', 'endereco', 'status']]
+        
         st.dataframe(
-            df_pevs.style.applymap(color_status, subset=['status']),
+            df_display.style.applymap(color_status, subset=['status']),
             use_container_width=True,
             hide_index=True
         )
 
-        # Simulação do Fluxo de Crowdsourcing
+        # --- Fluxo de Crowdsourcing (Reporte de Status) ---
+        st.markdown("---")
         col1, col2 = st.columns([1, 2])
+        
+        # Inicializa o estado da sessão para o fluxo de reporte
+        if 'report_flow' not in st.session_state:
+            st.session_state.report_flow = False
         
         with col1:
             # Botão para iniciar o fluxo de Prova Fotográfica
             if st.button("Reportar Status de um PEV", type="primary"):
                 st.session_state.report_flow = True
+                st.experimental_rerun() # Recarrega para iniciar o fluxo
 
         with col2:
             st.markdown(
@@ -127,25 +151,27 @@ def app_principal():
                 """
             )
         
-        # Fluxo de Prova Fotográfica (simulação de upload)
-        if 'report_flow' in st.session_state and st.session_state.report_flow:
-            st.markdown("---")
-            st.subheader("📷 Prova Fotográfica")
-            st.warning("Selecione uma foto que mostre a situação atual do PEV. (Simulação)")
+        # Bloco de Prova Fotográfica
+        if st.session_state.report_flow:
+            st.markdown("### 📷 Enviar Prova Fotográfica")
+            st.info("Selecione uma foto que mostre a situação atual do PEV e clique em Enviar.")
             
-            # Dropdown para selecionar o PEV (necessário para o relatório)
             selected_pev = st.selectbox(
                 "Qual PEV você está reportando?",
-                options=df_pevs['nome']
+                options=df_pevs['nome'],
+                key="select_pev"
             )
 
             # Campo de upload de arquivo
-            uploaded_file = st.file_uploader("Carregar Imagem", type=['png', 'jpg', 'jpeg'])
+            uploaded_file = st.file_uploader("Carregar Imagem", type=['png', 'jpg', 'jpeg'], key="file_uploader")
             
             if uploaded_file is not None and st.button("ENVIAR PROVA E ATUALIZAR STATUS"):
-                st.success(f"Obrigado! Relatório para '{selected_pev}' enviado com sucesso. A coleta será agendada.")
-                st.session_state.report_flow = False # Fecha o fluxo após envio
-                st.experimental_rerun()
+                # Lógica de envio (aqui é uma simulação)
+                st.success(f"Obrigado! Relatório para '{selected_pev}' enviado com sucesso. A coleta será agendada assim que possível.")
+                
+                # Reseta o estado da sessão para fechar o bloco
+                st.session_state.report_flow = False 
+                st.experimental_rerun() # Recarrega para limpar os campos
 
 
     # --- ABA 2: Higiene Digital (Foco no Usuário) ---
@@ -156,7 +182,7 @@ def app_principal():
         # Métricas de uso amigáveis
         col_m1, col_m2, col_m3 = st.columns(3)
         
-        col_m1.metric(label="Tempo de Tela (Média Diária)", value="5h 30m", delta="-30m vs. Semana Passada")
+        col_m1.metric(label="Tempo de Tela (Média Diária)", value="5h 30m", delta="-30m vs. Semana Passada", delta_color="inverse")
         col_m2.metric(label="Alerta de Postura", value="✅ OK", delta="0 Alertas Hoje")
         col_m3.metric(label="Horas de Sono (Média)", value="7h 15m", delta="Melhora de 15m")
         

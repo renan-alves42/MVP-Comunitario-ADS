@@ -55,12 +55,12 @@ PEVS_DATA = {
     ],
     # Coordenadas estimadas para espalhar os pontos pela cidade
     'lat': [
-        -20.5500,  # Leda Amendola
-        -20.5750,  # Califórnia
-        -20.5400,  # Christiano Carvalho
-        -20.5600,  # Exposição
-        -20.5550,  # Nadir Kenan
-        -20.5650   # Santa Cecília
+        -20.5500,
+        -20.5750,
+        -20.5400,
+        -20.5600,
+        -20.5550,
+        -20.5650
     ],
     'lon': [
         -48.5800,
@@ -92,17 +92,17 @@ def app_principal():
     
     # Simulação da Geolocalização Ativa (Barra Lateral)
     st.sidebar.info("📡 Geolocalização Ativa: Encontre o PEV mais próximo de você.", icon="🧭")
-    st.sidebar.markdown(f"**Centro do Mapa:** Latitude {BARRETOS_CENTER_LAT}, Longitude {BARRETOS_CENTER_LON}")
+    st.sidebar.markdown(f"**Cidade:** Barretos, SP")
 
     # Criação das Abas
-    tab1, tab2 = st.tabs(["Localizar Ponto de Descarte (PEV)", "Monitor de Bem-Estar Digital"])
+    # O TÍTULO DA ABA 2 FOI MANTIDO CLARO E SEM JARGÕES ACADÊMICOS
+    tab1, tab2 = st.tabs(["Localizar Ponto de Descarte (PEV)", "Sua Saúde Digital"])
 
     # --- ABA 1: Logística (Mapeamento) ---
     with tab1:
         st.header("📍 Pontos de Entrega Voluntária (PEVs) em Barretos")
         
         # Cria e exibe o mapa
-        # O zoom é definido para focar em Barretos e mostrar todos os pontos
         st.map(df_pevs, latitude='lat', longitude='lon', zoom=12)
         
         # Tabela com detalhes dos PEVs (incluindo o endereço)
@@ -141,7 +141,7 @@ def app_principal():
             # Botão para iniciar o fluxo de Prova Fotográfica
             if st.button("Reportar Status de um PEV", type="primary"):
                 st.session_state.report_flow = True
-                st.experimental_rerun() # Recarrega para iniciar o fluxo
+                st.experimental_rerun() 
 
         with col2:
             st.markdown(
@@ -162,36 +162,54 @@ def app_principal():
                 key="select_pev"
             )
 
-            # Campo de upload de arquivo
             uploaded_file = st.file_uploader("Carregar Imagem", type=['png', 'jpg', 'jpeg'], key="file_uploader")
             
             if uploaded_file is not None and st.button("ENVIAR PROVA E ATUALIZAR STATUS"):
-                # Lógica de envio (aqui é uma simulação)
                 st.success(f"Obrigado! Relatório para '{selected_pev}' enviado com sucesso. A coleta será agendada assim que possível.")
                 
-                # Reseta o estado da sessão para fechar o bloco
                 st.session_state.report_flow = False 
-                st.experimental_rerun() # Recarrega para limpar os campos
+                st.experimental_rerun()
 
 
     # --- ABA 2: Higiene Digital (Foco no Usuário) ---
     with tab2:
-        st.header("🧘 Seu Bem-Estar e o Descarte")
-        st.markdown("O uso excessivo de eletrônicos está ligado à geração de e-lixo e à sua saúde. Monitore seu uso:")
+        st.header("🧠 Monitor de Bem-Estar Digital")
+        st.markdown("""
+        O uso consciente dos seus eletrônicos não é bom apenas para o planeta, mas para **sua saúde**. 
+        O descarte de e-lixo é uma consequência do fim da vida útil dos aparelhos.
+        """)
         
-        # Métricas de uso amigáveis
+        st.subheader("Seu Desempenho (Simulado)")
+        # Métricas de uso amigáveis (REINTRODUZIDAS)
         col_m1, col_m2, col_m3 = st.columns(3)
         
-        col_m1.metric(label="Tempo de Tela (Média Diária)", value="5h 30m", delta="-30m vs. Semana Passada", delta_color="inverse")
-        col_m2.metric(label="Alerta de Postura", value="✅ OK", delta="0 Alertas Hoje")
-        col_m3.metric(label="Horas de Sono (Média)", value="7h 15m", delta="Melhora de 15m")
+        col_m1.metric(
+            label="Tempo de Tela (Média Diária)", 
+            value="5h 30m", 
+            delta="-30m vs. Semana Passada", 
+            delta_color="inverse",
+            help="Menos tempo de tela é melhor para a saúde dos olhos e para reduzir a necessidade de troca de aparelhos."
+        )
+        col_m2.metric(
+            label="Alerta de Postura", 
+            value="✅ OK", 
+            delta="0 Alertas Hoje",
+            help="Alerta automatizado que monitora sua postura ao usar o dispositivo."
+        )
+        col_m3.metric(
+            label="Horas de Sono (Média)", 
+            value="7h 15m", 
+            delta="Melhora de 15m",
+            help="Média de sono semanal. Dormir bem está diretamente ligado ao uso reduzido de eletrônicos antes de deitar."
+        )
         
         st.markdown("---")
-        st.subheader("📱 Dicas Rápidas para o Descarte")
+        st.subheader("💡 Dicas Rápidas: Uso Consciente e Descarte")
         st.write("""
-        * **Não Jogue no Lixo Comum:** Pilhas e eletrônicos possuem metais pesados que contaminam o solo e a água.
-        * **Apague seus Dados:** Sempre faça um reset de fábrica em celulares e computadores antes de descartar.
-        * **Aproveite a Vida Útil:** Tente consertar ou doar antes de descartar!
+        * **1. Priorize a Longevidade:** Evitar o uso excessivo e cuidar bem do seu aparelho é o primeiro passo para reduzir o e-lixo.
+        * **2. Não Jogue no Lixo Comum:** Pilhas e eletrônicos possuem metais pesados que contaminam o solo e a água. Use sempre os PEVs.
+        * **3. Faça Pausas:** Para cada hora de tela, descanse os olhos por 5 minutos para prevenir o cansaço visual.
+        * **4. Apague seus Dados:** Sempre faça um reset de fábrica em celulares e computadores antes de descartar ou doar.
         """)
 
 
